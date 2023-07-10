@@ -2,6 +2,7 @@
 # python-bluetooth-mesh - Bluetooth Mesh for Python
 #
 # Copyright (C) 2019  SILVAIR sp. z o.o.
+# Copyright (C) 2023  Louis Jennings
 #
 #
 # This program is free software; you can redistribute it and/or modify
@@ -41,6 +42,7 @@ from bluetooth_mesh.messages.config import (
 )
 from bluetooth_mesh.messages.generic.level import GenericLevelOpcode
 from bluetooth_mesh.messages.generic.light.ctl import LightCTLOpcode
+from bluetooth_mesh.messages.generic.light.hsl import LightHSLOpcode, LightHSLSetupOpcode
 from bluetooth_mesh.messages.generic.light.lightness import (
     LightLightnessOpcode,
     LightLightnessSetupOpcode,
@@ -2780,3 +2782,70 @@ class TimeClient(Model):
             else result[status_opcode.name.lower()]
             for node, result in results.items()
         }
+
+
+class LightHSLClient(Model):
+    MODEL_ID = (None, 0x1309)
+    
+    # Commented opcodes are part of the model specification but unimplemented.
+    OPCODES = {
+        #LightHSLOpcode.LIGHT_HSL_GET,
+        #LightHSLOpcode.LIGHT_HSL_SET,
+        #LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
+        #LightHSLOpcode.LIGHT_HSL_STATUS,
+        #LightHSLOpcode.LIGHT_HSL_TARGET_GET,
+        #LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
+        #LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
+        #LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET,
+        #LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET_UNACKNOWLEDGED,
+        #LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
+        #LightHSLOpcode.LIGHT_HSL_RANGE_GET,
+        #LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET,
+        #LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET_UNACKNOWLEDGED,
+        #LightHSLOpcode.LIGHT_HSL_RANGE_STATUS,
+        #LightHSLOpcode.LIGHT_HSL_HUE_GET,
+        #LightHSLOpcode.LIGHT_HSL_HUE_SET,
+        LightHSLOpcode.LIGHT_HSL_HUE_SET_UNACKNOWLEDGED,
+        #LightHSLOpcode.LIGHT_HSL_HUE_STATUS,
+        #LightHSLOpcode.LIGHT_HSL_SATURATION_GET,
+        #LightHSLOpcode.LIGHT_HSL_SATURATION_SET,
+        #LightHSLOpcode.LIGHT_HSL_SATURATION_SET_UNACKNOWLEDGED,
+        #LightHSLOpcode.LIGHT_HSL_SATURATION_STATUS
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+    async def set_hue_unack(
+            self,
+            destination: int,
+            app_index: int,
+            hue: int,
+            transition_time: float,
+            *,
+            delay: float = 0.5,
+            retransmissions: int = 6,
+            send_interval: float = 0.075,
+    ) -> None:
+        tid = self.tid()
+        remaining_delay = delay
+
+        async def request():
+            nonlocal remaining_delay
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=LightHSLOpcode.LIGHT_HSL_HUE_SET_UNACKNOWLEDGED,
+                params=dict(
+                    hue=hue,
+                    tid=tid,
+                    delay=delay,
+                    transition_time=transition_time
+                ),
+            )
+            remaining_delay = max(0.0, remaining_delay-send_interval)
+
+            return await ret
+        
+        await self.repeat(
+            request, retransmissions=retransmissions, send_interval=send_interval
+        )
