@@ -2784,6 +2784,48 @@ class TimeClient(Model):
         }
 
 
+class LightHSLServer(Model):
+    MODEL_ID = (None, 0x1307)
+
+    # Does not include the generic opcodes associated with the Main, Hue and Saturation
+    # models.
+    OPCODES = {
+        LightHSLOpcode.LIGHT_HSL_GET,
+        LightHSLOpcode.LIGHT_HSL_SET,
+        LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
+        LightHSLOpcode.LIGHT_HSL_STATUS,
+        LightHSLOpcode.LIGHT_HSL_TARGET_GET,
+        LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
+        LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
+        LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
+        LightHSLOpcode.LIGHT_HSL_RANGE_GET,
+        LightHSLOpcode.LIGHT_HSL_RANGE_STATUS,
+        LightHSLOpcode.LIGHT_HSL_HUE_GET,
+        LightHSLOpcode.LIGHT_HSL_HUE_SET,
+        LightHSLOpcode.LIGHT_HSL_HUE_SET_UNACKNOWLEDGED,
+        LightHSLOpcode.LIGHT_HSL_HUE_STATUS,
+        LightHSLOpcode.LIGHT_HSL_SATURATION_GET,
+        LightHSLOpcode.LIGHT_HSL_SATURATION_SET,
+        LightHSLOpcode.LIGHT_HSL_SATURATION_SET_UNACKNOWLEDGED,
+        LightHSLOpcode.LIGHT_HSL_SATURATION_STATUS
+    }
+    PUBLISH = True
+    SUBSCRIBE = True
+
+
+class LightHSLSetupServer(Model):
+    MODEL_ID = (None, 1308)
+
+    OPCODES = {
+        LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET,
+        LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET_UNACKNOWLEDGED,
+        LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET,
+        LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET_UNACKNOWLEDGED,
+    }
+
+    SUBSCRIBE = True
+
+
 class LightHSLClient(Model):
     MODEL_ID = (None, 0x1309)
     
@@ -2895,43 +2937,3 @@ class LightHSLClient(Model):
         await self.repeat(
             request, retransmissions=retransmissions, send_interval=send_interval
         )
-
-class LightHSLServer(Model):
-    MODEL_ID = (None, 0x1307)
-
-    # Does not include the generic opcodes associated with the Main, Hue and Saturation
-    # models.
-    OPCODES = {
-        LightHSLOpcode.LIGHT_HSL_GET,
-        LightHSLOpcode.LIGHT_HSL_SET,
-        LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
-        LightHSLOpcode.LIGHT_HSL_STATUS,
-        LightHSLOpcode.LIGHT_HSL_TARGET_GET,
-        LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
-        LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
-        LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
-        LightHSLOpcode.LIGHT_HSL_RANGE_GET,
-        LightHSLOpcode.LIGHT_HSL_RANGE_STATUS,
-        LightHSLOpcode.LIGHT_HSL_HUE_GET,
-        LightHSLOpcode.LIGHT_HSL_HUE_SET,
-        LightHSLOpcode.LIGHT_HSL_HUE_SET_UNACKNOWLEDGED,
-        LightHSLOpcode.LIGHT_HSL_HUE_STATUS,
-        LightHSLOpcode.LIGHT_HSL_SATURATION_GET,
-        LightHSLOpcode.LIGHT_HSL_SATURATION_SET,
-        LightHSLOpcode.LIGHT_HSL_SATURATION_SET_UNACKNOWLEDGED,
-        LightHSLOpcode.LIGHT_HSL_SATURATION_STATUS
-    }
-    PUBLISH = True
-    SUBSCRIBE = True
-
-class LightHSLSetupServer(Model):
-    MODEL_ID = (None, 1308)
-
-    OPCODES = {
-        LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET,
-        LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET_UNACKNOWLEDGED,
-        LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET,
-        LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET_UNACKNOWLEDGED,
-    }
-
-    SUBSCRIBE = True
