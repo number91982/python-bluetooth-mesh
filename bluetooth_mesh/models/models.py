@@ -89,6 +89,9 @@ __all__ = [
     "LightLightnessClient",
     "LightLightnessServer",
     "LightCTLClient",
+    "LightHSLClient",
+    "LightHSLServer",
+    "LightHSLSetupServer",
     "GatewayConfigServer",
     "GatewayConfigClient",
     "LightExtendedControllerSetupClient",
@@ -2831,16 +2834,16 @@ class LightHSLClient(Model):
     
     # Commented opcodes are part of the model specification but unimplemented.
     OPCODES = {
-        #LightHSLOpcode.LIGHT_HSL_GET,
-        #LightHSLOpcode.LIGHT_HSL_SET,
-        #LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
-        #LightHSLOpcode.LIGHT_HSL_STATUS,
-        #LightHSLOpcode.LIGHT_HSL_TARGET_GET,
-        #LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
-        #LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
+        LightHSLOpcode.LIGHT_HSL_GET,
+        LightHSLOpcode.LIGHT_HSL_SET,
+        LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
+        LightHSLOpcode.LIGHT_HSL_STATUS,
+        LightHSLOpcode.LIGHT_HSL_TARGET_GET,
+        LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
+        LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
         #LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET,
         #LightHSLSetupOpcode.LIGHT_HSL_DEFAULT_SET_UNACKNOWLEDGED,
-        #LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
+        LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
         #LightHSLOpcode.LIGHT_HSL_RANGE_GET,
         #LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET,
         #LightHSLSetupOpcode.LIGHT_HSL_RANGE_SET_UNACKNOWLEDGED,
@@ -2857,6 +2860,136 @@ class LightHSLClient(Model):
     PUBLISH = True
     SUBSCRIBE = True
 
+    async def get_hsl(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        return await self.send_message_receive_response(
+            nodes=nodes,
+            app_index=app_index,
+            get_opcode=LightHSLOpcode.LIGHT_HSL_GET,
+            status_opcode=LightHSLOpcode.LIGHT_HSL_STATUS,
+            send_interval=send_interval,
+            timeout=timeout)
+
+    async def set_hsl(
+        self,
+        nodes: Sequence[int],
+        hue: int,
+        saturation: int,
+        lightness: int,
+        app_index: int,
+        *,
+        delay: float = 0.5,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        return await self.send_message_receive_response(
+            nodes=nodes,
+            app_index=app_index,
+            get_opcode=LightHSLOpcode.LIGHT_HSL_SET,
+            status_opcode=LightHSLOpcode.LIGHT_HSL_STATUS,
+            params=dict(
+                hsl_lightness=lightness,
+                hsl_hue=hue,
+                hsl_saturation=saturation,
+                tid=self.tid(),
+            ),
+            send_interval=send_interval,
+            timeout=timeout
+        )
+
+    async def set_hsl_unack(
+            self,
+            destination: int,
+            app_index: int,
+            hue: int,
+            saturation: int,
+            lightness: int,
+            transition_time: float,
+            *,
+            delay: float = 0.5,
+            retransmissions: int = 6,
+            send_interval: float = 0.075,
+    ) -> None:
+        tid = self.tid()
+        remaining_delay = delay
+
+        async def request():
+            nonlocal remaining_delay
+            ret = self.send_app(
+                destination,
+                app_index=app_index,
+                opcode=LightHSLOpcode.LIGHT_HSL_SET_UNACKNOWLEDGED,
+                params=dict(
+                    hsl_lightness=lightness,
+                    hsl_hue=hue,
+                    hsl_saturation=saturation,
+                    tid=self.tid(),
+                    delay=delay,
+                    transition_time=transition_time
+                ),
+            )
+            remaining_delay = max(0.0, remaining_delay-send_interval)
+
+            return await ret
+        
+        await self.repeat(
+            request, retransmissions=retransmissions, send_interval=send_interval
+        )
+
+    async def get_target(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        return await self.send_message_receive_response(
+            nodes=nodes,
+            app_index=app_index,
+            get_opcode=LightHSLOpcode.LIGHT_HSL_TARGET_GET,
+            status_opcode=LightHSLOpcode.LIGHT_HSL_TARGET_STATUS,
+            send_interval=send_interval,
+            timeout=timeout)
+
+    async def get_default(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        return await self.send_message_receive_response(
+            nodes=nodes,
+            app_index=app_index,
+            get_opcode=LightHSLOpcode.LIGHT_HSL_DEFAULT_GET,
+            status_opcode=LightHSLOpcode.LIGHT_HSL_DEFAULT_STATUS,
+            send_interval=send_interval,
+            timeout=timeout)
+    
+    async def get_range(
+        self,
+        nodes: Sequence[int],
+        app_index: int,
+        *,
+        send_interval: float = 0.1,
+        timeout: Optional[float] = None,
+    ) -> Dict[int, Optional[Any]]:
+        return await self.send_message_receive_response(
+            nodes=nodes,
+            app_index=app_index,
+            get_opcode=LightHSLOpcode.LIGHT_HSL_RANGE_GET,
+            status_opcode=LightHSLOpcode.LIGHT_HSL_RANGE_STATUS,
+            send_interval=send_interval,
+            timeout=timeout)
+
     async def get_hue(
         self,
         nodes: Sequence[int],
@@ -2865,44 +2998,14 @@ class LightHSLClient(Model):
         send_interval: float = 0.1,
         timeout: Optional[float] = None,
     ) -> Dict[int, Optional[Any]]:
-        requests = {
-            node: partial(
-                self.send_app,
-                node,
-                app_index=app_index,
-                opcode=LightHSLOpcode.LIGHT_HSL_HUE_GET,
-                params=()
-            )
-            for node in nodes
-        }
-
-        status_opcode = LightHSLOpcode.LIGHT_HSL_HUE_STATUS
-
-        statuses = {
-            node: self.expect_app(
-                node,
-                app_index=0,
-                destination=None,
-                opcode=status_opcode,
-                params=dict()
-            )
-            for node in nodes
-        }
-
-        results = await self.bulk_query(
-            requests,
-            statuses,
+        return await self.send_message_receive_response(
+            nodes=nodes,
+            app_index=app_index,
+            get_opcode=LightHSLOpcode.LIGHT_HSL_HUE_GET,
+            status_opcode=LightHSLOpcode.LIGHT_HSL_HUE_STATUS,
             send_interval=send_interval,
-            timeout=timeout or len(nodes) * 0.5,
-        )
-
-        return {
-            node: None
-            if isinstance(result, Exception)
-            else result[status_opcode.name.lower()]
-            for node, result in results.items()
-        }
-
+            timeout=timeout)
+    
     async def set_hue_unack(
             self,
             destination: int,
