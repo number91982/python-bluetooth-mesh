@@ -24,6 +24,14 @@ from .generic.light.lightness import (
     LightLightnessSetupMessage,
     LightLightnessSetupOpcode,
 )
+
+from .generic.light.hsl import (
+    LightHSLMessage,
+    LightHSLOpcode,
+    LightHSLSetupMessage,
+    LightHSLSetupOpcode,
+)
+
 from .generic.onoff import GenericOnOffMessage, GenericOnOffOpcode
 from .health import HealthMessage, HealthOpcode
 from .scene import SceneMessage, SceneOpcode
@@ -61,6 +69,8 @@ class _AccessMessage(Construct):
         LightLightnessSetupOpcode: LightLightnessSetupMessage,
         LightCTLOpcode: LightCTLMessage,
         LightCTLSetupOpcode: LightCTLSetupMessage,
+        LightHSLOpcode: LightHSLMessage,
+        LightHSLSetupOpcode: LightHSLSetupMessage,
         HealthOpcode: HealthMessage,
         NetworkDiagnosticServerOpcode: NetworkDiagnosticServerMessage,
         NetworkDiagnosticSetupServerOpcode: NetworkDiagnosticSetupServerMessage,

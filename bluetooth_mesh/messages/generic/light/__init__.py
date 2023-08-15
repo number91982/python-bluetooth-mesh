@@ -12,3 +12,10 @@ from .lightness import (
     LightLightnessSetupMessage,
     LightLightnessSetupOpcode,
 )
+
+from .hsl import (
+    LightHSLMessage,
+    LightHSLOpcode,
+    LightHSLSetupMessage,
+    LightHSLSetupOpcode,
+)

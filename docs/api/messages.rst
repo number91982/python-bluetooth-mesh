@@ -91,6 +91,26 @@ Setup Server
 .. autoconstruct:: LightCTLSetupMessage
 
 
+Light HSL
+---------
+
+.. automodule:: bluetooth_mesh.messages.generic.light.hsl
+
+Server
+~~~~~~
+
+.. autoclass:: LightHSLOpcode
+
+.. autoconstruct:: LightHSLMessage
+
+Setup Server
+~~~~~~~~~~~~
+
+.. autoclass:: LightHSLSetupOpcode
+
+.. autoconstruct:: LightHSLSetupMessage
+
+
 Scene Server
 ------------
 
